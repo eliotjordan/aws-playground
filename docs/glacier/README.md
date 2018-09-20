@@ -1,0 +1,118 @@
+# Glacier
+
+## Vaults
+
+[Vault API](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/Glacier/Vault.html)
+
+### Create a new vault
+
+```
+vault = Aws::Glacier::Vault.new('account-id', 'vault-name', {region: 'us-east-1'})
+vault.create()
+```
+
+### Inventory retrieval
+Vault inventory is run once every ~24 hours. Use this command to retreive the latest version.
+
+```
+job = vault.initiate_inventory_retrieval()
+```
+
+## Archives
+
+[Archive API](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/Glacier/Archive.html)
+
+### Upload an archive
+
+```
+archive = vault.upload_archive({
+  archive_description: "Bob archive",
+  checksum: Digest::SHA256.file('spec/fixtures/bob.jpg').to_s,
+  body: IO.read('spec/fixtures/bob.jpg')
+})
+```
+
+### Retrieve an archive
+
+```
+archive = Aws::Glacier::Archive.new('account-id', 'vault-name', 'archive-id', {region: 'us-east-1'})
+job = archive.initiate_archive_retrieval()
+```
+
+Retrieval takes 3 -5 hours (unless expedited or bulk). Can poll job or poll `vault.jobs_in_progress`.
+
+```
+job.completed
+```
+
+## Jobs
+
+[Job API](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/Glacier/Job.html)
+
+### Get jobs in progress
+
+```
+jobs_in_progress = vault.jobs_in_progress({
+  completed: "false",
+})
+jobs_in_progress.count
+job = jobs_in_progress.first
+```
+
+### Get succeeded jobs
+
+```
+succeeded_jobs = vault.succeeded_jobs({
+  completed: "true",
+})
+```
+
+### Get job output
+
+Download the entire output.
+
+```
+job.get_output({})
+```
+
+Download a range to break the output into multiple chunks.
+
+```
+job.get_output({
+  range: "bytes=0-1048575",
+})
+```
+
+## Multipart Upload
+
+[MultipartUpload API](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/Glacier/MultipartUpload.html)
+
+### Initiate a multipart upload
+
+Part size is the size of each part except the last, in bytes. The last part can be smaller than this part size. The value of part_size must be a megabyte (1024 KB) multiplied by a power of 2, for example 1048576 (1 MB), 2097152 (2 MB), 4194304 (4 MB), 8388608 (8 MB), and so on. The minimum allowable part size is 1 MB, and the maximum is 4 GB (4096 MB).
+
+```
+multipartupload = vault.initiate_multipart_upload({
+  archive_description: "A big file to archive",
+  part_size: 1048576,
+})
+```
+
+## Upload a part
+
+```
+multipart_upload.upload_part({
+  checksum: "SHA256-tree-hash-of-part...",
+  range: "1048576-2097152",
+  body: "data",
+})
+```
+
+## Complete a multipart upload
+
+```
+multipart_upload.complete({
+  archive_size: 2097152,
+  checksum: "SHA256-tree-hash-of-entire-archive...",
+})
+```
