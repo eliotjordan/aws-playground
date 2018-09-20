@@ -4,5 +4,5 @@ gem 'aws-sdk', '~> 3'
 
 group :development, :test do
   gem 'bixby'
-  gem 'byebug'
+  gem 'pry-byebug'
 end

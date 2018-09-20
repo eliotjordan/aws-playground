@@ -599,11 +599,19 @@ GEM
       rubocop (~> 0.50, <= 0.52.1)
       rubocop-rspec (~> 1.22, <= 1.22.2)
     byebug (10.0.2)
+    coderay (1.1.2)
     jmespath (1.4.0)
+    method_source (0.9.0)
     parallel (1.12.1)
     parser (2.5.1.2)
       ast (~> 2.4.0)
     powerpack (0.1.2)
+    pry (0.11.3)
+      coderay (~> 1.1.0)
+      method_source (~> 0.9.0)
+    pry-byebug (3.6.0)
+      byebug (~> 10.0)
+      pry (~> 0.10)
     rainbow (3.0.0)
     rubocop (0.52.1)
       parallel (~> 1.10)
@@ -623,7 +631,7 @@ PLATFORMS
 DEPENDENCIES
   aws-sdk (~> 3)
   bixby
-  byebug
+  pry-byebug
 
 BUNDLED WITH
    1.16.5
