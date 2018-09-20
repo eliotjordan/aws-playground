@@ -13,7 +13,7 @@ $ aws-v3.rb
 
 ## Setting AWS Credentials
 
-### Shared Credentials
+#### Shared Credentials
 AWS credentials profile file.
 
 ```
@@ -26,20 +26,20 @@ aws_access_key_id = your_access_key_id
 aws_secret_access_key = your_secret_access_key
 ```
 
-### Evironment Variables
+#### Evironment Variables
 ```
 export AWS_ACCESS_KEY_ID=your_access_key_id
 export AWS_SECRET_ACCESS_KEY=your_secret_access_key
 ```
 
-### Aws.config
+#### Aws.config
 ```
 Aws.config.update({
    credentials: Aws::Credentials.new('your_access_key_id', 'your_secret_access_key')
 })
 ```
 
-### Client Object
+#### Client Object
 ```
 s3 = Aws::S3::Client.new(
   access_key_id: 'your_access_key_id',
@@ -49,17 +49,17 @@ s3 = Aws::S3::Client.new(
 
 ## Setting a Region
 
-### Environment Variable
+#### Environment Variable
 ```
 export AWS_REGION=us-east-1
 ```
 
-###  Aws.config
+####  Aws.config
 ```
 Aws.config.update({region: 'us-east-1'})
 ```
 
-### Client or Resource Object
+#### Client or Resource Object
 ```
 s3 = Aws::S3::Resource.new(region: 'us-east-1')
 ```
