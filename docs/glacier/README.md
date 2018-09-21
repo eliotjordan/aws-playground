@@ -31,6 +31,11 @@ archive = vault.upload_archive({
   body: IO.read('spec/fixtures/bob.jpg')
 })
 ```
+### Get an archive object by id
+
+```
+archive = vault.archive('archive-id')
+```
 
 ### Retrieve an archive
 
@@ -72,15 +77,23 @@ succeeded_jobs = vault.succeeded_jobs({
 Download the entire output.
 
 ```
-job.get_output({})
+output = job.get_output()
 ```
 
 Download a range to break the output into multiple chunks.
 
 ```
-job.get_output({
+output = job.get_output({
   range: "bytes=0-1048575",
 })
+```
+
+### Save downloaded file
+
+```
+File.open('/output/path/bob.jpg', 'w') do |f| 
+  f.puts(output.body.read)
+end
 ```
 
 ## Multipart Upload
@@ -98,21 +111,29 @@ multipartupload = vault.initiate_multipart_upload({
 })
 ```
 
-## Upload a part
+### Upload a part
 
 ```
 multipart_upload.upload_part({
   checksum: "SHA256-tree-hash-of-part...",
   range: "1048576-2097152",
-  body: "data",
+  body: "data"
 })
 ```
 
-## Complete a multipart upload
+### Complete a multipart upload
 
 ```
 multipart_upload.complete({
   archive_size: 2097152,
   checksum: "SHA256-tree-hash-of-entire-archive...",
 })
+```
+
+## Paws::Glacier
+
+```
+glacier = Paws::Glacier.new(account: 'account-id', vault: 'vault-name')
+file = File.open('spec/fixtures/bob.jpg')
+glacier.upload(file: file, part_size: 1048576, archive_description: "Bob uploaded")
 ```
