@@ -58,7 +58,7 @@ job.completed
 
 ```
 jobs_in_progress = vault.jobs_in_progress({
-  completed: "false",
+  completed: "false"
 })
 jobs_in_progress.count
 job = jobs_in_progress.first
@@ -68,7 +68,7 @@ job = jobs_in_progress.first
 
 ```
 succeeded_jobs = vault.succeeded_jobs({
-  completed: "true",
+  completed: "true"
 })
 ```
 
@@ -104,10 +104,12 @@ end
 
 Part size is the size of each part except the last, in bytes. The last part can be smaller than this part size. The value of part_size must be a megabyte (1024 KB) multiplied by a power of 2, for example 1048576 (1 MB), 2097152 (2 MB), 4194304 (4 MB), 8388608 (8 MB), and so on. The minimum allowable part size is 1 MB, and the maximum is 4 GB (4096 MB).
 
+NOTE: There is a maximum of 10000 parts allowed, so the part size must be set high enough to accommodate this limit. 
+
 ```
 multipartupload = vault.initiate_multipart_upload({
   archive_description: "A big file to archive",
-  part_size: 1048576,
+  part_size: 1048576
 })
 ```
 
