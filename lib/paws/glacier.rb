@@ -35,6 +35,44 @@ module Paws
       multipart.complete(archive_size: file.size, checksum: file_checksum(file))
     end
 
+    def download_retrieved_archive(job:, part_size: ONE_MB, base_path: "./tmp")
+      return nil unless job.archive_id
+      file_path = "#{base_path}/#{job.archive_id}.tar.gz"
+      File.open(file_path, 'wb') do |file|
+        download_output(job: job, part_size: part_size, file_size: job.archive_size_in_bytes) do |output|
+          chunk = output.body.read
+          file.write(chunk)
+        end
+      end
+
+      file_path
+    end
+
+    def download_retrieved_inventory(job:, part_size: ONE_MB, inventory_path: "./tmp/inventory.json")
+      File.open(inventory_path, 'wb') do |file|
+        download_output(job: job, part_size: part_size, file_size: job.inventory_size_in_bytes) do |output|
+          chunk = output.body.read
+          file.write(chunk)
+        end
+      end
+
+      inventory_path
+    end
+
+    # Calculate Glacier tree hash for entire file.
+    # @param file [IO]
+    # @return [String]
+    def file_checksum(file)
+      tree_hash = Aws::Glacier::TreeHash.new
+      file.rewind
+      until file.eof?
+        chunk = file.read(ONE_MB)
+        tree_hash.update(chunk)
+      end
+
+      tree_hash.digest
+    end
+
     private
 
       # Calculate Glacier tree hash for chunk of data.
@@ -61,18 +99,15 @@ module Paws
         tree_hash.digest
       end
 
-      # Calculate Glacier tree hash for entire file.
-      # @param file [IO]
-      # @return [String]
-      def file_checksum(file)
-        tree_hash = Aws::Glacier::TreeHash.new
-        file.rewind
-        until file.eof?
-          chunk = file.read(ONE_MB)
-          tree_hash.update(chunk)
+      def download_output(job:, part_size:, file_size:)
+        total_parts = (file_size / part_size.to_f).ceil
+        start_position = 0
+        total_parts.times do
+          range = range(start_position, part_size, file_size)
+          output = job.get_output(range: range)
+          yield(output)
+          start_position += part_size
         end
-
-        tree_hash.digest
       end
 
       # @param part_size [Integer]

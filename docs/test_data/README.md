@@ -50,7 +50,7 @@ On a server with access to the bags directory
   ```
   AWS_ACCESS_KEY_ID= AWS_SECRET_ACCESS_KEY= bundle exec irb
   ```
-2. Paste this code:
+3. Paste this code:
   
   ```
   require 'paws'
@@ -67,4 +67,50 @@ On a server with access to the bags directory
   glacier = Paws::Glacier.new(account: 'account-number', vault: 'vault-name')
   archived_bag_path = "tmp/archived_bags"
   upload_bags(archived_bag_path, glacier)
+  ```
+
+## Retrieve bags from Glacier
+
+1. Start the Figgy rails console
+
+  ```
+  require 'paws'
+
+  inventory = JSON.parse(File.read("path/to/inventory.json"))["ArchiveList"]
+  archive_ids = inventory.map { |i| i["ArchiveId"] }
+
+  archive_ids.each do |archive_id|
+   puts archive_id
+   archive = Aws::Glacier::Archive.new('account-number', vault: 'vault-name', archive_id, {region: 'us-east-1'})
+   archive.initiate_archive_retrieval()
+  end
+  ```
+
+2. After waiting for jobs to complete
+
+  ```
+  glacier = Paws::Glacier.new(account: 'account-number', vault: 'vault-name')
+  vault = glacier.vault
+  succeeded_jobs = vault.succeeded_jobs(completed: "true")
+  archive_retrieval_jobs = succeeded_jobs.reject { |job| job.archive_id.nil? }
+
+  archive_retrieval_jobs.each do |job|
+    begin
+      puts "Downloading: #{job.archive_id}"
+      file_path = glacier.download_retrieved_archive(job: job, part_size: 16777216)
+      checksum = ""
+      File.open(file_path) do |file|
+        checksum = glacier.file_checksum(file)
+      end
+      if checksum == job.sha256_tree_hash
+        puts "Checksums MATCH: #{job.archive_id}"
+      else
+        puts "Checksums DO NOT MATCH: #{job.archive_id}"
+      end
+      File.delete(file_path)
+    rescue StandardError => e
+      puts e.message
+      next
+    end
+  end
   ```
