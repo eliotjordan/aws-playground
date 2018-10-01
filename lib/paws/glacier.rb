@@ -35,6 +35,10 @@ module Paws
       multipart.complete(archive_size: file.size, checksum: file_checksum(file))
     end
 
+    # @param job [Aws::Glacier::Job]
+    # @param part_size [Integer]
+    # @param base_path [String]
+    # @return [String] path to downloaded file
     def download_retrieved_archive(job:, part_size: ONE_MB, base_path: "./tmp")
       return nil unless job.archive_id
       file_path = "#{base_path}/#{job.archive_id}.tar.gz"
@@ -48,6 +52,10 @@ module Paws
       file_path
     end
 
+    # @param job [Aws::Glacier::Job]
+    # @param part_size [Integer]
+    # @param base_path [String]
+    # @return [String] path to downloaded file
     def download_retrieved_inventory(job:, part_size: ONE_MB, inventory_path: "./tmp/inventory.json")
       File.open(inventory_path, 'wb') do |file|
         download_output(job: job, part_size: part_size, file_size: job.inventory_size_in_bytes) do |output|
@@ -99,6 +107,10 @@ module Paws
         tree_hash.digest
       end
 
+      # @param job [Aws::Glacier::Job]
+      # @param part_size [Integer]
+      # @param file_size [Integer]
+      # @yield [Aws::Glacier::Types::GetJobOutputOutput]
       def download_output(job:, part_size:, file_size:)
         total_parts = (file_size / part_size.to_f).ceil
         start_position = 0
