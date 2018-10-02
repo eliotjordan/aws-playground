@@ -42,8 +42,8 @@ module Paws
     def download_retrieved_archive(job:, part_size: ONE_MB, base_path: "./tmp")
       return nil unless job.archive_id
       file_path = "#{base_path}/#{job.archive_id}.tar.gz"
-      File.open(file_path, 'wb') do |file|
-        download_output(job: job, part_size: part_size, file_size: job.archive_size_in_bytes) do |output|
+      download_output(job: job, part_size: part_size, file_size: job.archive_size_in_bytes) do |output|
+        File.open(file_path, 'wb') do |file|
           chunk = output.body.read
           file.write(chunk)
         end
