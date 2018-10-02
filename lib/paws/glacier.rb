@@ -116,9 +116,10 @@ module Paws
         total_parts = (file_size / part_size.to_f).ceil
         start_position = 0
         total_parts.times do
-          range = range(start_position, part_size, file_size).gsub("/*", "")
+          range = range(start_position, part_size, file_size).gsub("/*", "").gsub("bytes ", "bytes=")
           puts "Range: #{range}"
           output = job.get_output({range: range})
+          puts "About to yield"
           yield(output)
           start_position += part_size
         end
