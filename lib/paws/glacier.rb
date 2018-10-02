@@ -42,12 +42,7 @@ module Paws
     def download_retrieved_archive(job:, part_size: ONE_MB, base_path: "./tmp")
       return nil unless job.archive_id
       file_path = "#{base_path}/#{job.archive_id}.tar.gz"
-      download_output(job: job, part_size: part_size, file_size: job.archive_size_in_bytes) do |output|
-        File.open(file_path, 'wb') do |file|
-          chunk = output.body.read
-          file.write(chunk)
-        end
-      end
+      download_output(job: job, part_size: part_size, file_size: job.archive_size_in_bytes, file_path: file_path)
 
       file_path
     end
@@ -111,13 +106,17 @@ module Paws
       # @param part_size [Integer]
       # @param file_size [Integer]
       # @yield [Aws::Glacier::Types::GetJobOutputOutput]
-      def download_output(job:, part_size:, file_size:)
+      def download_output(job:, part_size:, file_size:, file_path:)
         total_parts = (file_size / part_size.to_f).ceil
         start_position = 0
         total_parts.times do
           range = range(start_position, part_size, file_size)
           output = job.get_output(range: range)
-          yield(output)
+          chunk = output.body.read
+          File.open(file_path, 'wb') do |file|
+            file.write(chunk)
+          end
+
           start_position += part_size
         end
       end
