@@ -7,7 +7,7 @@ Notes on preparing data for testing in Glacier.
 Build bags for a list of resources and compress them with tar gzip.
 
 1. Copy `identifiers.json` to `/opt/figgy/current` on a Figgy server.
-2. Start the Figgy rails console
+2. Start the Figgy rails console. Be sure pass the FIGGY_BAG_PATH environment variable to keep the small temp directory from overflowing. We recommend using a directory on the mounted Isilon.
 3. Paste the following method:
   
   ```
