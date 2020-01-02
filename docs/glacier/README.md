@@ -44,7 +44,8 @@ archive = Aws::Glacier::Archive.new('account-id', 'vault-name', 'archive-id', {r
 job = archive.initiate_archive_retrieval()
 ```
 
-Retrieval takes 3 -5 hours (unless expedited or bulk). Can poll job or poll `vault.jobs_in_progress`.
+Retrieval takes 3 -5 hours (unless expedited or bulk). Poll `vault.jobs_in_progress` to wait for the retrieval
+to complete.
 
 ```
 job.completed
@@ -71,6 +72,8 @@ succeeded_jobs = vault.succeeded_jobs({
   completed: "true"
 })
 ```
+
+Make sure to filter by archive_id to get the correct file from the vault.
 
 ### Get job output
 
@@ -139,3 +142,30 @@ glacier = Paws::Glacier.new(account: 'account-id', vault: 'vault-name')
 file = File.open('spec/fixtures/bob.jpg')
 glacier.upload(file: file, part_size: 1048576, archive_description: "Bob uploaded")
 ```
+
+## Rake Tasks
+
+### Setup
+```
+  AWS_ACCESS_KEY=XXXXXXXXXXXXXXXXXXXX
+  AWS_ACCESS_SECRET=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  AWS_ACCOUNT_ID=122345667890
+  PART_SIZE=1073741824 # optional, defaults to 1MB
+```
+
+### Upload
+```
+$ rake upload VAULT_NAME=myvault UPLOAD_FILENAME=myfile.tar.gz
+```
+
+Uploads the file and outputs the archive ID:
+```
+myfile.tar.gz => XXXXXXXXXXXXXXXXXXXX-XXXXX-XXXXXXXXXXXXXXX-XXXXXXXX
+```
+
+### Download
+```
+$ rake download VAULT_NAME=myvault ARCHIVE_ID=XXXXXXXXXXXXXXXXXXXX-XXXXX-XXXXXXXXXXXXXXX-XXXXXXXX
+```
+
+Saves the file to `XXXXXXXXXXXXXXXXXXXX-XXXXX-XXXXXXXXXXXXXXX-XXXXXXXX.tar.gz`
